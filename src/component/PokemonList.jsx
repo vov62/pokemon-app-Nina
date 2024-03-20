@@ -6,8 +6,8 @@ const PokemonList = ({ data }) => {
 
   return (
     <div className="flex gap-5 flex-wrap justify-center ">
-      {data?.map((item) => (
-        <PokemonCard item={item} key={item.id} />
+      {data?.map((item,i) => (
+        <PokemonCard item={item} key={`${item.id}-${i}`} />
       ))}
     </div>
   );

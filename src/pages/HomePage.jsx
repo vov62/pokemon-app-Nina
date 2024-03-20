@@ -1,28 +1,38 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 // import { useState } from "react";
-import PokemonList from "./../component/PokemonList";
-import { useInfiniteQuery, useQuery } from "react-query";
-import img from "../assets/pokeball-loader.gif";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { useInView } from "react-intersection-observer";
 import { getDataFromApi } from "../Api/api";
-import { useState } from "react";
+import img from "../assets/pokeball-loader.gif";
+import PokemonList from "./../component/PokemonList";
+
+const apiUrl = "https://pokeapi.co/api/v2/pokemon?limit=20&offset=";
 
 const HomePage = () => {
-  const [count, setCount] = useState(5);
-
+  const [page, setPage] = useState(1);
   const [filterName, setFilterName] = useState("");
   const [filterId, setFilterId] = useState("");
   const [filterTypes, setFilterTypes] = useState("");
 
-  //   const { data, isLoading, isError } = useQuery({
-  //     queryKey: ["pokemonData"],
-  //     queryFn: () => getDataFromApi(count),
-  //   });
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
 
-  const { data, fetchNextPage, hasNextPage, isLoading, isError } =
+  const { data, fetchNextPage, hasNextPage, isError, isLoading } =
     useInfiniteQuery({
       queryKey: ["pokemonData"],
-      queryFn: ({ pageParam = 20 }) => getDataFromApi(pageParam),
-      getNextPageParam: (lastPage) => {
-        return lastPage.length + 1;
+      queryFn: async () => {
+        setPage((page) => page + 1);
+        console.log(page);
+        const res = await axios.get(`${apiUrl}${page}`);
+        const { results } = res.data;
+        return getDataFromApi(results);
+      },
+      initialPageParam: 10,
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.length ? allPages.length + 1 : undefined;
       },
     });
 
@@ -43,7 +53,7 @@ const HomePage = () => {
   };
 
   const filteredData = data?.pages
-    .flatMap((page) => page) // Flatten the array of pages
+    ?.flatMap((page) => page)
     .filter((pokemon) => {
       // Filter by name
       if (
@@ -71,58 +81,75 @@ const HomePage = () => {
       return true;
     });
 
-  const handleLoadMore = () => {
-    fetchNextPage();
-  };
+  useEffect(() => {
+    if (hasNextPage && inView) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, inView, fetchNextPage]);
 
   return (
     <div className="p-7">
       <h1 className="font-bold text-3xl text-gray-50">Pokedex </h1>
-      <div className="flex justify-between w-full gap-9 mt-8">
-        <div className="card bg-base-300 max-h-72 place-items-center py-3 sticky top-0 ">
+      {/* max-lg:flex-col */}
+      <div className="flex justify-between w-full gap-9 mt-8 max-lg:flex-col">
+        <div className="card bg-[#ffffff1f] shadow-[#00000059] shadow-xl max-h-96 place-items-center py-3 lg:sticky top-10  max-sm:static">
           <h2>Filter By</h2>
-          <div className="label">
-            <span className="label-text m-5">name:</span>
-            <input
-              type="text"
-              className="input input-bordered input-sm  max-w-xs"
-              value={filterName}
-              onChange={handleNameFilterChange}
-            />
-          </div>
 
-          <div className="label">
-            <span className="label-text m-5">id:</span>
-            <input
-              type="text"
-              className="input input-bordered input-sm  max-w-xs"
-              value={filterId}
-              onChange={handleIdFilterChange}
-            />
-          </div>
+          <div className="label px-4 flex flex-col ">
+            <div className="flex items-center">
+              <label className="label-text m-5 text-base font-bold text-[#fff]">
+                name:
+              </label>
 
-          <div className="label">
-            <span className="label-text m-5">Types:</span>
-            <input
-              type="text"
-              className="input input-bordered input-sm  max-w-xs"
-              value={filterTypes}
-              onChange={handleTypesFilterChange}
-            />
+              <input
+                type="text"
+                className="input input-bordered input-sm  max-w-xs text-black"
+                value={filterName}
+                onChange={handleNameFilterChange}
+              />
+            </div>
+
+            <div className="flex items-center">
+              <label className="label-text m-5 text-base font-bold text-[#fff]">
+                id:
+              </label>
+              <input
+                type="text"
+                className="input input-bordered input-sm text-base  text-black"
+                value={filterId}
+                onChange={handleIdFilterChange}
+              />
+            </div>
+
+            <div className="flex items-center">
+              <label className="label-text m-5 font-bold text-[#fff]">
+                Types:
+              </label>
+              <input
+                type="text"
+                className="input input-bordered input-sm  max-w-xs text-black"
+                value={filterTypes}
+                onChange={handleTypesFilterChange}
+              />
+            </div>
           </div>
         </div>
 
         <div className="col-span-3">
           {isLoading ? (
-            <img src={img} alt="pokador" width={80} />
+            <div className="flex justify-center items-center">
+              <img src={img} alt="pokador" width={80} />
+            </div>
           ) : (
             <>
               <PokemonList data={filteredData} />
-              {!hasNextPage.length && (
-                <button className="btn btn-primary" onClick={handleLoadMore}>
-                  Load More
-                </button>
-              )}
+
+              <div className="py-5">
+                <span
+                  ref={ref}
+                  className="loading loading-spinner loading-md"
+                ></span>
+              </div>
             </>
           )}
         </div>
