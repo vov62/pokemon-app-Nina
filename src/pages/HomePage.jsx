@@ -1,53 +1,129 @@
 // import { useState } from "react";
 import PokemonList from "./../component/PokemonList";
-import { useQuery } from "react-query";
+import { useInfiniteQuery, useQuery } from "react-query";
 import img from "../assets/pokeball-loader.gif";
-import axios from "axios";
+import { getDataFromApi } from "../Api/api";
 import { useState } from "react";
 
 const HomePage = () => {
-  const [newData, setData] = useState([]);
+  const [count, setCount] = useState(5);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["data"],
-    queryFn: () => getDataFromApi(),
-  });
+  const [filterName, setFilterName] = useState("");
+  const [filterId, setFilterId] = useState("");
+  const [filterTypes, setFilterTypes] = useState("");
 
-  const getDataFromApi = async () => {
-    let res = await axios("https://pokeapi.co/api/v2/pokemon?limit=20");
-    const data = res.data;
-    getPokemon(data.results);
-    return data;
-  };
+  //   const { data, isLoading, isError } = useQuery({
+  //     queryKey: ["pokemonData"],
+  //     queryFn: () => getDataFromApi(count),
+  //   });
 
-  const getPokemon = async (res) => {
-    res.map(async (item) => {
-      //   console.log(item.url);
-      const results = await axios(item.url);
-      //   console.log(results.data);
-      setData((state) => {
-        state = [...state, results.data];
-        return state;
-      });
+  const { data, fetchNextPage, hasNextPage, isLoading, isError } =
+    useInfiniteQuery({
+      queryKey: ["pokemonData"],
+      queryFn: ({ pageParam = 20 }) => getDataFromApi(pageParam),
+      getNextPageParam: (lastPage) => {
+        return lastPage.length + 1;
+      },
     });
+
+  if (isError) {
+    return <div>Error fetching data</div>;
+  }
+
+  const handleNameFilterChange = (e) => {
+    setFilterName(e.target.value);
   };
 
-  //   const getPokemon = async (res) => {};
+  const handleIdFilterChange = (e) => {
+    setFilterId(e.target.value);
+  };
 
-  //   if (isLoading) return <div></div>;
+  const handleTypesFilterChange = (e) => {
+    setFilterTypes(e.target.value);
+  };
+
+  const filteredData = data?.pages
+    .flatMap((page) => page) // Flatten the array of pages
+    .filter((pokemon) => {
+      // Filter by name
+      if (
+        filterName &&
+        !pokemon.name.toLowerCase().includes(filterName.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Filter by id
+      if (filterId && pokemon.id !== parseInt(filterId)) {
+        return false;
+      }
+
+      // Filter by types
+      if (
+        filterTypes &&
+        !pokemon.types.some((type) =>
+          type.type.name.toLowerCase().includes(filterTypes.toLowerCase())
+        )
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+  const handleLoadMore = () => {
+    fetchNextPage();
+  };
 
   return (
     <div className="p-7">
       <h1 className="font-bold text-3xl text-gray-50">Pokedex </h1>
-      <div className="grid grid-cols-4 w-full gap-9 mt-8">
-        <div className="grid h-20 card bg-base-300 place-items-center">
+      <div className="flex justify-between w-full gap-9 mt-8">
+        <div className="card bg-base-300 max-h-72 place-items-center py-3 sticky top-0 ">
           <h2>Filter By</h2>
+          <div className="label">
+            <span className="label-text m-5">name:</span>
+            <input
+              type="text"
+              className="input input-bordered input-sm  max-w-xs"
+              value={filterName}
+              onChange={handleNameFilterChange}
+            />
+          </div>
+
+          <div className="label">
+            <span className="label-text m-5">id:</span>
+            <input
+              type="text"
+              className="input input-bordered input-sm  max-w-xs"
+              value={filterId}
+              onChange={handleIdFilterChange}
+            />
+          </div>
+
+          <div className="label">
+            <span className="label-text m-5">Types:</span>
+            <input
+              type="text"
+              className="input input-bordered input-sm  max-w-xs"
+              value={filterTypes}
+              onChange={handleTypesFilterChange}
+            />
+          </div>
         </div>
-        <div className="col-span-3 h-20 flex-grow card ">
+
+        <div className="col-span-3">
           {isLoading ? (
             <img src={img} alt="pokador" width={80} />
           ) : (
-            <PokemonList data={newData} />
+            <>
+              <PokemonList data={filteredData} />
+              {!hasNextPage.length && (
+                <button className="btn btn-primary" onClick={handleLoadMore}>
+                  Load More
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

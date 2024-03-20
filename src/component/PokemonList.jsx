@@ -5,12 +5,10 @@ const PokemonList = ({ data }) => {
   // console.log(data);
 
   return (
-    <div className="flex gap-5 flex-wrap justify-center border border-l-rose-50">
+    <div className="flex gap-5 flex-wrap justify-center ">
       {data?.map((item) => (
-        <PokemonCard item={item} key={item.name} />
+        <PokemonCard item={item} key={item.id} />
       ))}
-
-      {/* <PokemonCard item={data} key={data.name} /> */}
     </div>
   );
 };

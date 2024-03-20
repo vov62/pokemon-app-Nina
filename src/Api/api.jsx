@@ -1,15 +1,31 @@
-import { useQuery } from "react-query";
+import axios from "axios";
+import { useState } from "react";
 
-export const pokemonAPI = "https://pokeapi.co/api/v2";
+const singlePokemonUrl = "https://pokeapi.co/api/v2/pokemon/";
 
-// const apiUrl  = 'https://pokeapi.co/api/v2/pokemon/charmeleon'; יביא לנו את הפרטים על אותו פוקימון
-// types api = https://pokeapi.co/api/v2/type/{id or name}/
+const apiUrl = "https://pokeapi.co/api/v2/pokemon?limit=";
 
-// export const fetchPokemonsData = async () => {
-//   try {
-//     let res = await()
-//     return res.data;
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
+export const getDataFromApi = async (limit) => {
+  //   console.log(limit);
+  const res = await axios(`${apiUrl}${limit}`);
+  const { results } = res.data;
+
+  // Fetch details for each Pokemon
+  const pokemonDetails = await Promise.all(
+    results.map(async (item) => {
+      const result = await axios(item.url);
+      return result.data;
+    })
+  );
+
+  return pokemonDetails; // Return data for useQuery
+};
+
+export const getSinglePokemonData = async (id) => {
+  //   console.log(limit);
+  const res = await axios(`${singlePokemonUrl}${id}`);
+  const results = res.data;
+  console.log(results);
+
+  return results; // Return data for useQuery
+};
