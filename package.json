@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "serve": "4433 serve dist",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -12,6 +13,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.28.4",
     "axios": "^1.6.8",
+    "https-localhost": "^4.7.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^9.8.1",
@@ -30,6 +32,8 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.36",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.1.6"
+    "vite": "^5.1.6",
+    "vite-plugin-pwa": "^0.19.5",
+    "workbox-window": "^7.0.0"
   }
 }

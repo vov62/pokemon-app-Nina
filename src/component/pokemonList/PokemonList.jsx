@@ -1,12 +1,10 @@
 import PropTypes from "prop-types";
-import PokemonCard from "./PokemonCard";
+import PokemonCard from "../pokemonCard/PokemonCard";
 
 const PokemonList = ({ data }) => {
-  // console.log(data);
-
   return (
     <div className="flex gap-5 flex-wrap justify-center ">
-      {data?.map((item,i) => (
+      {data?.map((item, i) => (
         <PokemonCard item={item} key={`${item.id}-${i}`} />
       ))}
     </div>

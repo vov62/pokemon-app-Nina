@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-// import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { getDataFromApi } from "../Api/api";
-import img from "../assets/pokeball-loader.gif";
-import PokemonList from "./../component/PokemonList";
+import { getDataFromApi } from "../utils/api";
+import Loader from "../component/Loader";
+import PokemonList from "../component/pokemonList/PokemonList";
+import ErrorMessages from "../component/ErrorMessages";
 
 const apiUrl = "https://pokeapi.co/api/v2/pokemon?limit=20&offset=";
 
@@ -25,7 +25,6 @@ const HomePage = () => {
       queryKey: ["pokemonData"],
       queryFn: async () => {
         setPage((page) => page + 1);
-        console.log(page);
         const res = await axios.get(`${apiUrl}${page}`);
         const { results } = res.data;
         return getDataFromApi(results);
@@ -37,7 +36,11 @@ const HomePage = () => {
     });
 
   if (isError) {
-    return <div>Error fetching data</div>;
+    return (
+      <ErrorMessages>
+        <p>please refresh the page or check your network connection...</p>
+      </ErrorMessages>
+    );
   }
 
   const handleNameFilterChange = (e) => {
@@ -55,7 +58,6 @@ const HomePage = () => {
   const filteredData = data?.pages
     ?.flatMap((page) => page)
     .filter((pokemon) => {
-      // Filter by name
       if (
         filterName &&
         !pokemon.name.toLowerCase().includes(filterName.toLowerCase())
@@ -63,12 +65,10 @@ const HomePage = () => {
         return false;
       }
 
-      // Filter by id
       if (filterId && pokemon.id !== parseInt(filterId)) {
         return false;
       }
 
-      // Filter by types
       if (
         filterTypes &&
         !pokemon.types.some((type) =>
@@ -90,14 +90,14 @@ const HomePage = () => {
   return (
     <div className="p-7">
       <h1 className="font-bold text-3xl text-gray-50">Pokedex </h1>
-      {/* max-lg:flex-col */}
-      <div className="flex justify-between w-full gap-9 mt-8 max-lg:flex-col">
-        <div className="card bg-[#ffffff1f] shadow-[#00000059] shadow-xl max-h-96 place-items-center py-3 lg:sticky top-10  max-sm:static">
+
+      <div className=" gap-9 mt-8 max-lg:flex-col">
+        <div className="card bg-bgPrimary shadow-shadowPrimary shadow-xl max-h-96 place-items-center py-3 ">
           <h2>Filter By</h2>
 
-          <div className="label px-4 flex flex-col ">
+          <div className="label px-4 flex flex-row max-lg:flex-col max-sm:justify-center ">
             <div className="flex items-center">
-              <label className="label-text m-5 text-base font-bold text-[#fff]">
+              <label className="label-text m-5 text-base font-bold capitalize text-[#fff]">
                 name:
               </label>
 
@@ -110,20 +110,20 @@ const HomePage = () => {
             </div>
 
             <div className="flex items-center">
-              <label className="label-text m-5 text-base font-bold text-[#fff]">
+              <label className="label-text m-5 text-base font-bold capitalize text-[#fff]">
                 id:
               </label>
               <input
                 type="text"
-                className="input input-bordered input-sm text-base  text-black"
+                className="input input-bordered input-sm  max-w-xs  text-black ml-6"
                 value={filterId}
                 onChange={handleIdFilterChange}
               />
             </div>
 
             <div className="flex items-center">
-              <label className="label-text m-5 font-bold text-[#fff]">
-                Types:
+              <label className="label-text m-5 font-bold capitalize text-[#fff]">
+                types:
               </label>
               <input
                 type="text"
@@ -135,11 +135,9 @@ const HomePage = () => {
           </div>
         </div>
 
-        <div className="col-span-3">
+        <div className="col-span-3 my-8">
           {isLoading ? (
-            <div className="flex justify-center items-center">
-              <img src={img} alt="pokador" width={80} />
-            </div>
+            <Loader />
           ) : (
             <>
               <PokemonList data={filteredData} />
