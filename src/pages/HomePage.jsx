@@ -103,7 +103,7 @@ const HomePage = () => {
 
               <input
                 type="text"
-                className="input input-bordered input-sm  max-w-xs text-black"
+                className="input input-bordered input-sm  max-w-xs text-[#000] font-bold"
                 value={filterName}
                 onChange={handleNameFilterChange}
               />
@@ -115,7 +115,7 @@ const HomePage = () => {
               </label>
               <input
                 type="text"
-                className="input input-bordered input-sm  max-w-xs  text-black ml-6"
+                className="input input-bordered input-sm  max-w-xs text-[#000] font-bold ml-6"
                 value={filterId}
                 onChange={handleIdFilterChange}
               />
@@ -127,7 +127,7 @@ const HomePage = () => {
               </label>
               <input
                 type="text"
-                className="input input-bordered input-sm  max-w-xs text-black"
+                className="input input-bordered input-sm  max-w-xs text-[#000] font-bold"
                 value={filterTypes}
                 onChange={handleTypesFilterChange}
               />
